@@ -2,12 +2,26 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include <string>
+#include <fstream>
 #define TOLERANCE -0.1
 #define MULT_TOLERANCE 2
+#define MAX_SIZE 10000
 
 using namespace std;
-
-double array[] = {1, 4, -3, -3, 1, 5, -2, 5, -2, 10, 15, 11, -2, -1, -2, 5, 6, 7, -1, 8};
+/*
+double* readFile(string fileName)
+{
+	double* closes = new double(MAX_SIZE);
+	int index = 0;
+	ifstream fs(fileName);
+	while (index < 10000){
+		fs>>closes[index];
+		index++;
+	}
+	return closes;
+}
+*/
 
 struct delta_struct
 {
@@ -21,19 +35,23 @@ vector<delta_struct> merge_consecutive(vector<delta_struct> all_delta_points)
     vector<delta_struct> merged;
     int i = 0;
     double total = 0;
-    int first_sign = array[i]/abs(array[i]);
+	int first_sign;
+    if (all_delta_points[i].delta != 0){
+    	first_sign = all_delta_points[i].delta/abs(all_delta_points[i].delta);
+    } else {
+    	first_sign = 1;
+    }
     
     delta_struct return_struct;
     
     int n = all_delta_points.size();
-    
+    //cout << "Starting Loop"<<endl;
     while(i < n)
     {
         return_struct.start = i;
-        
-        while(first_sign*array[i] >= 0 && i < n)
+        while(first_sign*all_delta_points[i].delta >= 0 && i < n)
         {
-            return_struct.delta += array[i];
+            return_struct.delta += all_delta_points[i].delta;
             i++;
         }
         return_struct.end = i;
@@ -41,9 +59,9 @@ vector<delta_struct> merge_consecutive(vector<delta_struct> all_delta_points)
         
         return_struct.delta = 0;
         return_struct.start = i;
-        while(first_sign*array[i] < 0 && i < n)
+        while(first_sign*all_delta_points[i].delta < 0 && i < n)
         {
-            return_struct.delta += array[i];
+            return_struct.delta += all_delta_points[i].delta;
             i++;
         }
         return_struct.end = i;
@@ -100,7 +118,7 @@ int count_positives(vector<delta_struct> the_deltas)
 vector<delta_struct> merge(vector<delta_struct> the_deltas)
 {
     vector<delta_struct> result;
-    double toler = TOLERANCE;
+    double tolerance = TOLERANCE;
     
     if(the_deltas[0].delta < 0)
     {
@@ -135,24 +153,40 @@ vector<delta_struct> merge(vector<delta_struct> the_deltas)
     }
 }
 
+
+
 int main()
 {
+	double array [10000]; 
+	int index = 0;
+	ifstream fs("MSFT_closes.txt");
+	while (fs>>array[index]){
+		index++;
+	}
+	int j = 0;
+	string dates[10000];
+	ifstream dt("MSFT_dates.txt");
+	while (dt>>dates[j])
+		j++;
     vector<delta_struct> test;
     delta_struct s;
-    for(int i = 0; i < 20; i++)
+    for(int i = 0; i < index; i++)
     {
-        s.delta = array[i];
+        s.delta = array[i+1]-array[i];
         s.start = i;
         s.end = i + 1;
-        test.push_back(s);
+        if (s.delta != 0) 
+        	test.push_back(s);
     }
-    
+
     vector<delta_struct> merged = merge_consecutive(test);
-    
     vector<delta_struct> result = merge(merged);
     
-    for(int i = 0; i < result.size(); i++)
+    for(int i = 0; i < result.size(); i++){
         cout << result[i].delta << endl;
+        cout << dates[result[i].start] << " -> "<< dates[result[i].end]<< endl;
+    }
     
     return 0;
+
 }
