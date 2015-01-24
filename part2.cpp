@@ -175,7 +175,7 @@ int main()
         s.delta = array[i+1]-array[i];
         s.start = i;
         s.end = i + 1;
-        if (s.delta != 0) 
+        //if (s.delta != 0) 
         	test.push_back(s);
     }
 
@@ -184,6 +184,7 @@ int main()
     
     for(int i = 0; i < result.size(); i++){
         cout << result[i].delta << endl;
+        cout << (result[i].delta)/array[result[i].start] * 100 << " percent"<<endl;
         cout << dates[result[i].start] << " -> "<< dates[result[i].end]<< endl;
     }
     
