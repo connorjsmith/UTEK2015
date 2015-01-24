@@ -9,19 +9,6 @@
 #define MAX_SIZE 10000
 
 using namespace std;
-/*
-double* readFile(string fileName)
-{
-	double* closes = new double(MAX_SIZE);
-	int index = 0;
-	ifstream fs(fileName);
-	while (index < 10000){
-		fs>>closes[index];
-		index++;
-	}
-	return closes;
-}
-*/
 
 struct delta_struct
 {
@@ -45,7 +32,6 @@ vector<delta_struct> merge_consecutive(vector<delta_struct> all_delta_points)
     delta_struct return_struct;
     
     int n = all_delta_points.size();
-    //cout << "Starting Loop"<<endl;
     while(i < n)
     {
         return_struct.start = i;
@@ -86,8 +72,10 @@ vector<delta_struct> merge_tolerance(vector<delta_struct> the_deltas, double tol
 {
     for(auto iter = the_deltas.begin(); iter != the_deltas.end(); iter++)
     {
+        //if we are at a negative delta, and it is within the tolerance (greater than)
         if((iter->delta < 0) && (iter->delta >= tolerance))
         {
+            //merge the three elements (+, -, +) into one element and continue
             delta_struct create;
             create.delta = (iter - 1)->delta + iter->delta + (iter + 1)->delta;
             create.start = (iter - 1)->start;
@@ -115,11 +103,13 @@ int count_positives(vector<delta_struct> the_deltas)
     return pos_count;
 }
 
+//merges the list into single positive and negative deltas (flip flops between negatives and positives)
 vector<delta_struct> merge(vector<delta_struct> the_deltas)
 {
     vector<delta_struct> result;
     double tolerance = TOLERANCE;
     
+    //we do not care about negative stock's at the beginning or end of our array
     if(the_deltas[0].delta < 0)
     {
         the_deltas.erase(the_deltas.begin());
@@ -130,22 +120,22 @@ vector<delta_struct> merge(vector<delta_struct> the_deltas)
         the_deltas.pop_back();
     }
     
+    //while the resulting vector has greater than 5 positive elements, keep merging
     vector<delta_struct> prev;
-    
     do
     {
-        prev = result;
+        prev = result;      //store previous result in case the new result has less than 5 elements
         result = merge_tolerance(the_deltas, tolerance);
-        tolerance *= MULT_TOLERANCE;
+        tolerance *= MULT_TOLERANCE;    //increases the merge tolerence (width that we merge two positives)
     }while(count_positives(result) > 5);
     
-    if(count_positives(result) < 5)
+    if(count_positives(result) < 5)     //if we found less than 5 positives upon break, revert back to prev
     {
         sort(prev.begin(), prev.end());
         vector<delta_struct> ret_vec(prev.begin(), prev.begin() + 5);
         return ret_vec;
     }
-    else
+    else   //if we found exactly 5 positive deltas
     {
         sort(result.begin(), result.end());
         vector<delta_struct> ret_vec(result.begin(), result.begin() + 5);
@@ -163,11 +153,14 @@ int main()
 	while (fs>>array[index]){
 		index++;
 	}
+    
 	int j = 0;
 	string dates[10000];
 	ifstream dt("MSFT_dates.txt");
 	while (dt>>dates[j])
 		j++;
+    
+    //struct to hold initial differences between points
     vector<delta_struct> test;
     delta_struct s;
     for(int i = 0; i < index; i++)
@@ -175,11 +168,13 @@ int main()
         s.delta = array[i+1]-array[i];
         s.start = i;
         s.end = i + 1;
-        //if (s.delta != 0) 
-        	test.push_back(s);
+        test.push_back(s);
     }
 
+    //merge the positives and negatives
     vector<delta_struct> merged = merge_consecutive(test);
+    
+    //result in a ordered vector (largest to smallest)
     vector<delta_struct> result = merge(merged);
     
     for(int i = 0; i < result.size(); i++){
