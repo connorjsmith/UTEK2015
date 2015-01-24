@@ -2,6 +2,8 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#define TOLERANCE -0.1
+#define MULT_TOLERANCE 2
 
 using namespace std;
 
@@ -66,14 +68,14 @@ vector<delta_struct> merge_tolerance(vector<delta_struct> the_deltas, double tol
 {
     for(auto iter = the_deltas.begin(); iter != the_deltas.end(); iter++)
     {
-        if(iter->delta < 0 && iter->delta >= tolerance)
+        if((iter->delta < 0) && (iter->delta >= tolerance))
         {
             delta_struct create;
             create.delta = (iter - 1)->delta + iter->delta + (iter + 1)->delta;
             create.start = (iter - 1)->start;
             create.end = (iter + 1)->end;
             
-            auto in_iter = the_deltas.erase(iter, iter + 3);
+            auto in_iter = the_deltas.erase(iter - 1, iter + 2);
             the_deltas.insert(in_iter, create);
             
             iter = (in_iter - 1);
@@ -98,7 +100,7 @@ int count_positives(vector<delta_struct> the_deltas)
 vector<delta_struct> merge(vector<delta_struct> the_deltas)
 {
     vector<delta_struct> result;
-    double tolerance = -1;
+    double toler = TOLERANCE;
     
     if(the_deltas[0].delta < 0)
     {
@@ -116,8 +118,7 @@ vector<delta_struct> merge(vector<delta_struct> the_deltas)
     {
         prev = result;
         result = merge_tolerance(the_deltas, tolerance);
-        tolerance *= 1.5;
-        cout << "in" << endl;
+        tolerance *= MULT_TOLERANCE;
     }while(count_positives(result) > 5);
     
     if(count_positives(result) < 5)
@@ -129,8 +130,8 @@ vector<delta_struct> merge(vector<delta_struct> the_deltas)
     else
     {
         sort(result.begin(), result.end());
-        vector<delta_struct> ret_vec(result.begin(), prev.begin() + 5);
-        return result;
+        vector<delta_struct> ret_vec(result.begin(), result.begin() + 5);
+        return ret_vec;
     }
 }
 
@@ -149,11 +150,6 @@ int main()
     vector<delta_struct> merged = merge_consecutive(test);
     
     vector<delta_struct> result = merge(merged);
-    
-    for(int i = 0; i < merged.size(); i++)
-        cout << merged[i].delta << endl;
-    
-    cout << endl;
     
     for(int i = 0; i < result.size(); i++)
         cout << result[i].delta << endl;
