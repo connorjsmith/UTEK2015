@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->graph, &StockView::update_status, this, &MainWindow::makedo);
+    //connect(ui->graph, &StockView::update_status, this, &MainWindow::makedo);
 
 
 
